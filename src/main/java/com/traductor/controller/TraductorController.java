@@ -1,41 +1,60 @@
 package com.traductor.controller;
 
 import com.traductor.model.ITraductor;
-import com.traductor.view.InterfazTraductor;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextArea;
 
 /**
- * Controlador que gestiona la interacción entre la vista y el modelo.
+ * Controlador FXML que gestiona la interacción entre la vista y el modelo.
  *
  * @see ITraductor
- * @see InterfazTraductor
  */
 public class TraductorController {
+    @FXML
+    private TextArea textoEntrada;
+
+    @FXML
+    private TextArea textoSalida;
+
     private ITraductor traductor;
-    private InterfazTraductor vista;
-    
+
     /**
-     * Constructor que inicializa el controlador.
+     * Constructor sin argumentos requerido por FXML.
+     */
+    public TraductorController() {
+    }
+
+    /**
+     * Establece el traductor a utilizar.
      *
-     * @param vista La interfaz de usuario.
      * @param traductor El traductor a utilizar.
      */
-    public TraductorController(InterfazTraductor vista, ITraductor traductor) {
-        this.vista = vista;
+    public void setTraductor(ITraductor traductor) {
         this.traductor = traductor;
     }
-    
+
     /**
-     * Procesa la traducción solicitada por la vista.
+     * Método de inicialización llamado automáticamente por FXML.
      */
-    public void traducir() {
-        String textoEntrada = vista.obtenerTexto();
-        
-        if (textoEntrada == null || textoEntrada.trim().isEmpty()) {
-            vista.mostrarResultado("Por favor ingrese texto para traducir");
+    @FXML
+    private void initialize() {
+        // Inicialización adicional si es necesaria
+    }
+
+    /**
+     * Procesa la traducción solicitada por el usuario.
+     * Este método es invocado cuando se hace clic en el botón "Traducir a Braille".
+     */
+    @FXML
+    private void traducir() {
+        String texto = textoEntrada.getText();
+
+        if (texto == null || texto.trim().isEmpty()) {
+            textoSalida.setText("Por favor ingrese texto para traducir");
             return;
         }
-        
-        String resultado = traductor.traducir(textoEntrada);
-        vista.mostrarResultado(resultado);
+
+        String resultado = traductor.traducir(texto);
+        textoSalida.setText(resultado);
     }
 }
