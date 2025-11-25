@@ -1,4 +1,4 @@
-package com.traductor;
+package com.traductor.view;
 
 import com.traductor.controller.TraductorController;
 import com.traductor.model.TraductorBraille;
@@ -17,7 +17,7 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Cargar el archivo FXML
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/traductor/view/traductor.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/traductor/traductor.fxml"));
         Parent root = loader.load();
 
         // Obtener el controlador y configurar el modelo
