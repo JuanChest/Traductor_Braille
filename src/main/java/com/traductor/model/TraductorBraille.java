@@ -99,12 +99,12 @@ public class TraductorBraille implements ITraductor {
         // Cada punto se mapea a un bit: punto1=bit0, punto2=bit1, punto3=bit2, etc.
         int valor = 0x2800;
         
-        if (simbolo.isPoint(1)) valor += 0x01;
-        if (simbolo.isPoint(2)) valor += 0x02;
-        if (simbolo.isPoint(3)) valor += 0x04;
-        if (simbolo.isPoint(4)) valor += 0x08;
-        if (simbolo.isPoint(5)) valor += 0x10;
-        if (simbolo.isPoint(6)) valor += 0x20;
+        if (simbolo.isPuntoActivado(1)) valor += 0x01;
+        if (simbolo.isPuntoActivado(2)) valor += 0x02;
+        if (simbolo.isPuntoActivado(3)) valor += 0x04;
+        if (simbolo.isPuntoActivado(4)) valor += 0x08;
+        if (simbolo.isPuntoActivado(5)) valor += 0x10;
+        if (simbolo.isPuntoActivado(6)) valor += 0x20;
         
         return String.valueOf((char) valor);
     }
