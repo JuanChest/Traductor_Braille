@@ -13,4 +13,12 @@ public interface ITraductor {
      * @return El texto traducido.
      */
     String traducir(String entrada);
+    
+    /**
+     * Traduce texto Braille (en Unicode) de vuelta a español.
+     *
+     * @param textoBraille El texto en Braille a traducir.
+     * @return El texto en español.
+     */
+    String traducirBrailleAEspanol(String textoBraille);
 }

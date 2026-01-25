@@ -1,31 +1,23 @@
 package com.traductor.model;
 
 /**
- * Implementa la traducción de texto a Braille.
- *
- * @see ITraductor
- * @see DiccionarioBraille
+ * Implementa la traducción bidireccional entre Español y Braille Unicode.
  */
 public class TraductorBraille implements ITraductor {
     private DiccionarioBraille diccionario;
     
-    /**
-     * Inicializa el traductor con un diccionario.
-     */
     public TraductorBraille() {
         this.diccionario = new DiccionarioBraille();
     }
     
     /**
-     * Traduce un texto a su representación en Braille.
-     *
-     * @param texto El texto a traducir.
-     * @return El texto traducido a Braille con símbolos Unicode.
+     * Traduce texto de Español a Braille Unicode.
+     * @param texto El texto en Español a traducir.
+     * @return El texto traducido en Braille Unicode.
      */
+    @Override
     public String traducir(String texto) {
-        if (texto == null || texto.isEmpty()) {
-            return "";
-        }
+        if (texto == null || texto.isEmpty()) return "";
         
         StringBuilder resultado = new StringBuilder();
         boolean enModoNumero = false;
@@ -33,136 +25,218 @@ public class TraductorBraille implements ITraductor {
         for (int i = 0; i < texto.length(); i++) {
             char caracter = texto.charAt(i);
             
-            // Detectar si es un número
             if (diccionario.esNumero(caracter)) {
-                // Si no estamos en modo número, agregar el prefijo
                 if (!enModoNumero) {
-                    SimboloBraille prefijo = new SimboloBraille(diccionario.obtenerPrefijoNumero());
-                    resultado.append(convertirABrailleUnicode(prefijo));
+                    resultado.append(convertirABrailleUnicode(new SimboloBraille(diccionario.obtenerPrefijoNumero())));
                     enModoNumero = true;
                 }
-                
                 SimboloBraille simbolo = getSimbolo(caracter);
-                if (simbolo != null) {
-                    resultado.append(convertirABrailleUnicode(simbolo));
-                }
-            } else if (caracter == ',' || caracter == '.') {
-                // Puntos y comas no salen del modo número
-                SimboloBraille simbolo = getSimbolo(caracter);
-                if (simbolo != null) {
-                    resultado.append(convertirABrailleUnicode(simbolo));
-                }
+                if (simbolo != null) resultado.append(convertirABrailleUnicode(simbolo));
             } else if (caracter == ' ') {
-                // Los espacios salen del modo número
                 enModoNumero = false;
-                SimboloBraille simbolo = getSimbolo(caracter);
-                if (simbolo != null) {
-                    resultado.append(convertirABrailleUnicode(simbolo));
-                }
+                resultado.append("\u2800"); // Espacio Braille Unicode
             } else {
-                // Cualquier otro carácter sale del modo número
                 enModoNumero = false;
-                
-                // Detectar si es mayúscula
                 if (Character.isUpperCase(caracter)) {
-                    // Verificar si la palabra completa está en mayúsculas
-                    boolean palabraCompletaMayuscula = esPalabraCompletaMayuscula(texto, i);
-                    
-                    if (palabraCompletaMayuscula) {
-                        // Solo agregar prefijo de mayúscula al inicio de la palabra
-                        boolean esInicioPalabra = (i == 0 || !Character.isLetter(texto.charAt(i - 1)));
-                        if (esInicioPalabra) {
-                            SimboloBraille prefijoMayus = new SimboloBraille(diccionario.obtenerPrefijoMayuscula());
-                            resultado.append(convertirABrailleUnicode(prefijoMayus));
+                    if (esPalabraCompletaMayuscula(texto, i)) {
+                        if (i == 0 || !Character.isLetter(texto.charAt(i - 1))) {
+                            resultado.append(convertirABrailleUnicode(new SimboloBraille(diccionario.obtenerPrefijoMayuscula())));
                         }
                     } else {
-                        // Agregar prefijo de mayúscula para cada letra mayúscula individual
-                        SimboloBraille prefijoMayus = new SimboloBraille(diccionario.obtenerPrefijoMayuscula());
-                        resultado.append(convertirABrailleUnicode(prefijoMayus));
+                        resultado.append(convertirABrailleUnicode(new SimboloBraille(diccionario.obtenerPrefijoMayuscula())));
                     }
-                    
-                    // Convertir a minúscula para obtener el símbolo
                     SimboloBraille simbolo = getSimbolo(Character.toLowerCase(caracter));
-                    if (simbolo != null) {
-                        resultado.append(convertirABrailleUnicode(simbolo));
-                    }
+                    if (simbolo != null) resultado.append(convertirABrailleUnicode(simbolo));
                 } else {
                     SimboloBraille simbolo = getSimbolo(caracter);
-                    if (simbolo != null) {
-                        resultado.append(convertirABrailleUnicode(simbolo));
-                    } else {
-                        resultado.append(caracter); // Mantener caracteres no traducibles
-                    }
+                    if (simbolo != null) resultado.append(convertirABrailleUnicode(simbolo));
+                    else resultado.append(caracter);
                 }
             }
         }
-        
         return resultado.toString();
     }
-    
+
     /**
-     * Verifica si una palabra completa está en mayúsculas.
-     *
+     * Traduce texto de Braille Unicode a Español.
+     * @param textoBraille El texto en Braille Unicode a traducir.
+     * @return El texto traducido en Español.
+     */
+    @Override
+    public String traducirBrailleAEspanol(String textoBraille) {
+        if (textoBraille == null || textoBraille.isEmpty()) return "";
+        
+        StringBuilder resultado = new StringBuilder();
+        boolean siguienteMayuscula = false;
+        boolean modoNumero = false;
+        
+        for (int i = 0; i < textoBraille.length(); i++) {
+            char caracterActual = textoBraille.charAt(i);
+            
+            if (caracterActual == '\n' || caracterActual == '\r') {
+                resultado.append(caracterActual);
+                modoNumero = false;
+                siguienteMayuscula = false;
+                continue;
+            }
+            
+            if (caracterActual == ' ' || caracterActual == '\u2800' || caracterActual == '\t') {
+                resultado.append(' ');
+                modoNumero = false;
+                siguienteMayuscula = false;
+                continue;
+            }
+            
+            if (esBrailleUnicode(caracterActual)) {
+                String patron = convertirUnicodeBrailleAPatron(caracterActual);
+                if (patron.equals("0") || patron.isEmpty()) {
+                    resultado.append(' ');
+                    modoNumero = false;
+                    siguienteMayuscula = false;
+                    continue;
+                }
+                
+                if (patron.equals(diccionario.obtenerPrefijoMayuscula())) {
+                    siguienteMayuscula = true;
+                    continue;
+                }
+                
+                if (patron.equals(diccionario.obtenerPrefijoNumero())) {
+                    modoNumero = true;
+                    continue;
+                }
+                
+                Character encontrado = buscarCaracterPorPatron(patron, modoNumero);
+                
+                // Si no se encuentra en modo número, intentar buscar como letra
+                if (encontrado == null && modoNumero) {
+                    encontrado = buscarCaracterPorPatron(patron, false);
+                }
+                
+                if (encontrado != null) {
+                    if (encontrado == ' ') {
+                        modoNumero = false;
+                        siguienteMayuscula = false;
+                        resultado.append(' ');
+                    } else if (siguienteMayuscula && Character.isLetter(encontrado)) {
+                        encontrado = Character.toUpperCase(encontrado);
+                        siguienteMayuscula = false;
+                        resultado.append(encontrado);
+                        // Si es una letra, salir del modo número
+                        if (!Character.isDigit(encontrado)) {
+                            modoNumero = false;
+                        }
+                    } else {
+                        resultado.append(encontrado);
+                        // Si no es un dígito ni una coma/punto, salir del modo número
+                        if (!Character.isDigit(encontrado) && encontrado != ',' && encontrado != '.') {
+                            modoNumero = false;
+                        }
+                    }
+                } else {
+                    resultado.append(caracterActual);
+                }
+            } else {
+                resultado.append(caracterActual);
+            }
+        }
+        return resultado.toString();
+    }
+
+    /**
+     * Convierte un carácter Braille Unicode a su patrón de puntos.
+     * @param caracterBraille El carácter Braille Unicode.
+     * @return El patrón de puntos correspondiente.
+     */
+    private String convertirUnicodeBrailleAPatron(char caracterBraille) {
+        int valor = caracterBraille - 0x2800;
+        
+        // Si el valor es 0, es el carácter Braille vacío (espacio)
+        if (valor == 0) return "0";
+        
+        StringBuilder patron = new StringBuilder();
+        if ((valor & 0x01) != 0) patron.append("1");
+        if ((valor & 0x02) != 0) patron.append("2");
+        if ((valor & 0x04) != 0) patron.append("3");
+        if ((valor & 0x08) != 0) patron.append("4");
+        if ((valor & 0x10) != 0) patron.append("5");
+        if ((valor & 0x20) != 0) patron.append("6");
+        
+        return patron.toString();
+    }
+
+    /**
+     * Verifica si un carácter es un carácter Braille Unicode.
+     * @param c El carácter a verificar.
+     * @return true si es un carácter Braille Unicode, false en caso contrario.
+     */
+    private boolean esBrailleUnicode(char c) {
+        return c >= '\u2800' && c <= '\u28FF';
+    }
+
+    /**
+     * Verifica si la palabra completa en la posición dada está en mayúsculas.
      * @param texto El texto completo.
      * @param posicion La posición del carácter actual.
      * @return true si la palabra completa está en mayúsculas, false en caso contrario.
      */
     private boolean esPalabraCompletaMayuscula(String texto, int posicion) {
-        // Encontrar el inicio de la palabra
         int inicio = posicion;
-        while (inicio > 0 && Character.isLetter(texto.charAt(inicio - 1))) {
-            inicio--;
-        }
-        
-        // Encontrar el fin de la palabra
+        while (inicio > 0 && Character.isLetter(texto.charAt(inicio - 1))) inicio--;
         int fin = posicion;
-        while (fin < texto.length() && Character.isLetter(texto.charAt(fin))) {
-            fin++;
-        }
-        
-        // Verificar si todas las letras de la palabra son mayúsculas
+        while (fin < texto.length() && Character.isLetter(texto.charAt(fin))) fin++;
         for (int i = inicio; i < fin; i++) {
-            char c = texto.charAt(i);
-            if (Character.isLetter(c) && !Character.isUpperCase(c)) {
-                return false;
-            }
+            if (Character.isLetter(texto.charAt(i)) && !Character.isUpperCase(texto.charAt(i))) return false;
         }
-        
-        // Solo considerar como palabra completa en mayúsculas si tiene al menos 2 letras
         return (fin - inicio) >= 2;
     }
-    
+
     /**
      * Convierte un símbolo Braille a su representación Unicode.
-     *
      * @param simbolo El símbolo Braille a convertir.
-     * @return El carácter Unicode Braille correspondiente.
+     * @return El carácter Braille Unicode correspondiente.
      */
     private String convertirABrailleUnicode(SimboloBraille simbolo) {
-        // El Unicode Braille comienza en U+2800
-        // Cada punto se mapea a un bit: punto1=bit0, punto2=bit1, punto3=bit2, etc.
         int valor = 0x2800;
-        
         if (simbolo.isPuntoActivado(1)) valor += 0x01;
         if (simbolo.isPuntoActivado(2)) valor += 0x02;
         if (simbolo.isPuntoActivado(3)) valor += 0x04;
         if (simbolo.isPuntoActivado(4)) valor += 0x08;
         if (simbolo.isPuntoActivado(5)) valor += 0x10;
         if (simbolo.isPuntoActivado(6)) valor += 0x20;
-        
         return String.valueOf((char) valor);
     }
-    
+
     /**
      * Obtiene el símbolo Braille correspondiente a un carácter.
-     *
-     * @param caracter El carácter a convertir.
-     * @return El símbolo Braille correspondiente.
+     * @param caracter El carácter a traducir.
+     * @return El símbolo Braille correspondiente, o null si no existe.
      */
     public SimboloBraille getSimbolo(char caracter) {
         String patron = diccionario.obtenerPatron(caracter);
-        if (patron != null) {
-            return new SimboloBraille(patron);
+        return (patron != null) ? new SimboloBraille(patron) : null;
+    }
+
+    /**
+     * Busca un carácter en el diccionario por su patrón de puntos.
+     * @param patron El patrón de puntos a buscar.
+     * @param modoNumero Indica si se está en modo número.
+     * @return El carácter correspondiente, o null si no se encuentra.
+     */
+    private Character buscarCaracterPorPatron(String patron, boolean modoNumero) {
+        if (patron.equals(" ")) return ' ';
+        if (modoNumero) {
+            String[] patronesNumeros = {"1", "12", "14", "145", "15", "124", "1245", "125", "24", "245"};
+            for (int i = 0; i < patronesNumeros.length; i++) {
+                if (patron.equals(patronesNumeros[i])) return (i == 9) ? '0' : (char) ('1' + i);
+            }
+        }
+        for (char c = 'a'; c <= 'z'; c++) {
+            if (patron.equals(diccionario.obtenerPatron(c))) return c;
+        }
+        char[] especiales = {' ', ',', '.', ';', ':', '?', '!', '"', '(', ')', '-', 'á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ'};
+        for (char c : especiales) {
+            if (patron.equals(diccionario.obtenerPatron(c))) return c;
         }
         return null;
     }

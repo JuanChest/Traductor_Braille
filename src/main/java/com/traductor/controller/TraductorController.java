@@ -2,8 +2,10 @@ package com.traductor.controller;
 
 import com.traductor.model.ITraductor;
 import com.traductor.service.GeneradorPDF;
+import com.traductor.service.LectorPDF;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
@@ -27,6 +29,15 @@ public class TraductorController {
 
     @FXML
     private TextArea textoSalida;
+
+    @FXML
+    private CheckBox checkModoEspejo;
+
+    @FXML
+    private TextArea textoTraduccionPDF;
+
+    @FXML
+    private Label lblArchivoSeleccionado;
 
     private ITraductor traductor;
 
@@ -115,8 +126,11 @@ public class TraductorController {
 
         if (archivo != null) {
             try {
-                // Generar el PDF
-                GeneradorPDF.generarPDF(textoOriginal, textoBraille, archivo.getAbsolutePath());
+                // Verificar si el modo espejo está activado
+                boolean modoEspejo = checkModoEspejo != null && checkModoEspejo.isSelected();
+                
+                // Generar el PDF con o sin modo espejo
+                GeneradorPDF.generarPDF(textoOriginal, textoBraille, archivo.getAbsolutePath(), modoEspejo);
 
                 // Mostrar notificación minimalista de éxito
                 mostrarNotificacionMinimalista("PDF generado correctamente", "success");
@@ -173,6 +187,48 @@ public class TraductorController {
         PauseTransition delay = new PauseTransition(Duration.seconds(2));
         delay.setOnFinished(event -> notificacion.close());
         delay.play();
+    }
+
+    /**
+     * Permite seleccionar un archivo PDF con texto Braille para traducir a español.
+     * Este método es invocado cuando se hace clic en el botón "Seleccionar Archivo PDF".
+     */
+    @FXML
+    private void seleccionarArchivoPDF() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar PDF con texto Braille");
+        
+        // Filtro para archivos PDF
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Archivos PDF (*.pdf)", "*.pdf");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
+        // Mostrar diálogo para abrir archivo
+        File archivoPDF = fileChooser.showOpenDialog(textoTraduccionPDF.getScene().getWindow());
+        
+        if (archivoPDF != null) {
+            try {
+                // Actualizar label con el nombre del archivo
+                lblArchivoSeleccionado.setText(archivoPDF.getName());
+                lblArchivoSeleccionado.setStyle("-fx-font-style: normal; -fx-text-fill: #2196F3; -fx-font-weight: bold;");
+                
+                // Leer el PDF y traducir de Braille a Español
+                String textoBraille = LectorPDF.leerPDF(archivoPDF.getAbsolutePath());
+                String textoEspanol = traductor.traducirBrailleAEspanol(textoBraille);
+                
+                // Mostrar la traducción
+                textoTraduccionPDF.setText(textoEspanol);
+                
+                // Mostrar notificación de éxito
+                mostrarNotificacionMinimalista("PDF leído correctamente", "success");
+                
+            } catch (Exception e) {
+                lblArchivoSeleccionado.setText("Error al leer el archivo");
+                lblArchivoSeleccionado.setStyle("-fx-font-style: italic; -fx-text-fill: #F44336;");
+                textoTraduccionPDF.setText("Error al procesar el archivo PDF: " + e.getMessage());
+                mostrarNotificacionMinimalista("Error al leer el PDF", "error");
+                e.printStackTrace();
+            }
+        }
     }
 
     /**

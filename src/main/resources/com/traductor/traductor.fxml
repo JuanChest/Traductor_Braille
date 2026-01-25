@@ -2,7 +2,10 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
@@ -12,21 +15,53 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
     
-    <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Traductor de Texto a Braille" />
+    <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sistema Traductor Braille v1.2" />
     
-    <Label text="Texto de Entrada:" />
-    
-    <TextArea fx:id="textoEntrada" prefColumnCount="40" prefRowCount="5" promptText="Ingrese el texto a traducir..." wrapText="true" />
-    
-    <HBox alignment="CENTER_LEFT" spacing="10.0">
-        <Button fx:id="btnLimpiar" onAction="#limpiarTexto" style="-fx-font-size: 14px; -fx-padding: 10px 20px;" text="Limpiar" />
-    </HBox>
-    
-    <Button fx:id="btnTraducir" onAction="#traducir" style="-fx-font-size: 14px; -fx-padding: 10px 20px;" text="Traducir a Braille" />
-    
-    <Label text="Resultado en Braille:" />
-    
-    <TextArea fx:id="textoSalida" editable="false" prefColumnCount="40" prefRowCount="5" style="-fx-control-inner-background: #f0f0f0; -fx-font-size: 24px; -fx-font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans';" wrapText="true" />
-    
-    <Button fx:id="btnDescargarPDF" onAction="#descargarPDF" style="-fx-font-size: 12px; -fx-padding: 8px 15px; -fx-background-color: #4CAF50; -fx-text-fill: white;" text="📄 Descargar PDF" />
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
+        <!-- Tab 1: Español a Braille -->
+        <Tab text="Español ➡ Braille">
+            <VBox spacing="15.0">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </padding>
+                
+                <Label text="Texto de Entrada (Español):" />
+                
+                <TextArea fx:id="textoEntrada" prefColumnCount="40" prefRowCount="5" promptText="Escribe aquí para traducir..." wrapText="true" />
+                
+                <HBox alignment="CENTER" spacing="10.0">
+                    <Button fx:id="btnLimpiar" onAction="#limpiarTexto" style="-fx-font-size: 14px; -fx-padding: 10px 20px;" text="Limpiar" />
+                    <Button fx:id="btnTraducir" onAction="#traducir" style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #2196F3; -fx-text-fill: white;" text="Traducir" />
+                </HBox>
+                
+                <Label text="Resultado (Braille):" />
+                
+                <TextArea fx:id="textoSalida" editable="false" prefColumnCount="40" prefRowCount="5" style="-fx-control-inner-background: #f0f0f0; -fx-font-size: 24px; -fx-font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans';" wrapText="true" />
+                
+                <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #e3f2fd; -fx-padding: 10px; -fx-background-radius: 5px;">
+                    <CheckBox fx:id="checkModoEspejo" text="Modo Espejo (Para escritura manual)" />
+                    <Button fx:id="btnDescargarPDF" onAction="#descargarPDF" style="-fx-font-size: 12px; -fx-padding: 8px 15px; -fx-background-color: #4CAF50; -fx-text-fill: white;" text="Generar PDF" />
+                </HBox>
+            </VBox>
+        </Tab>
+        
+        <!-- Tab 2: Braille (PDF) a Español -->
+        <Tab text="Braille (PDF) ➡ Español">
+            <VBox spacing="15.0" alignment="CENTER">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </padding>
+                
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Subir documento PDF con texto Braille" />
+                
+                <Button fx:id="btnSeleccionarPDF" onAction="#seleccionarArchivoPDF" style="-fx-font-size: 14px; -fx-padding: 15px 30px; -fx-background-color: #FF9800; -fx-text-fill: white;" text="📁 Seleccionar Archivo PDF" />
+                
+                <Label fx:id="lblArchivoSeleccionado" text="Ningún archivo seleccionado" style="-fx-font-style: italic; -fx-text-fill: #666666;" />
+                
+                <Label text="Traducción detectada:" style="-fx-font-weight: bold;" />
+                
+                <TextArea fx:id="textoTraduccionPDF" editable="false" prefColumnCount="40" prefRowCount="10" promptText="La traducción aparecerá aquí..." style="-fx-control-inner-background: #f0f0f0; -fx-font-size: 16px;" wrapText="true" />
+            </VBox>
+        </Tab>
+    </TabPane>
 </VBox>
