@@ -17,6 +17,10 @@ import com.itextpdf.layout.properties.TextAlignment;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * GeneradorPDF es una clase que proporciona funcionalidades para generar documentos PDF
+ * que contienen texto en español y su correspondiente representación en Braille.
+ */
 public class GeneradorPDF {
 
     private static final float MM_TO_POINTS = 2.834645f;
@@ -25,30 +29,39 @@ public class GeneradorPDF {
     private static final float ESPACIADO_ENTRE_LINEAS_MM = 15.0f;
     private static final float TAMANO_FUENTE_BRAILLE = ALTO_CELDA_MM * MM_TO_POINTS * 1.2f;
 
+    /**
+     * Genera un documento PDF con el texto original y su representación en Braille.
+     * @param textoOriginal Texto en español que se desea incluir en el PDF.
+     * @param textoBraille Representación en Braille del texto original.
+     * @param rutaDestino Ruta donde se guardará el archivo PDF generado.
+     * @param modoEspejo Indica si el contenido debe generarse en modo espejo.
+     * @throws IOException Si ocurre un error al crear o escribir el archivo PDF.
+     */
     public static void generarPDF(String textoOriginal, String textoBraille, String rutaDestino, boolean modoEspejo) throws IOException {
         File archivo = new File(rutaDestino);
         PdfWriter writer = new PdfWriter(archivo);
         PdfDocument pdf = new PdfDocument(writer);
         
-        // Usamos un Document normal para manejar el flujo de texto
+        // Documento base A4
         Document document = new Document(pdf, PageSize.A4);
         document.setMargins(40, 40, 40, 40);
 
         try {
-            PdfFont fontBold = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.HELVETICA_BOLD);
-
-            // 1. DIBUJAR ESPAÑOL (Siempre normal, incluso en modo espejo)
-            document.add(new Paragraph(textoOriginal)
-                    .setFont(fontBold)
-                    .setFontSize(48)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20));
-
             if (modoEspejo) {
-                // 2. DIBUJAR BRAILLE CON ESPEJO (Solo afecta al bloque Braille)
-                agregarBrailleEspejo(pdf, document, textoBraille);
+                // En modo espejo, manejamos tanto el Español como el Braille dentro del canvas transformado
+                generarContenidoEspejo(pdf, textoOriginal, textoBraille);
             } else {
-                // 2. DIBUJAR BRAILLE NORMAL
+                // Modo normal
+                PdfFont fontBold = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.HELVETICA_BOLD);
+                
+                // 1. Español Normal
+                document.add(new Paragraph(textoOriginal)
+                        .setFont(fontBold)
+                        .setFontSize(48)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setMarginBottom(20));
+
+                // 2. Braille Normal
                 agregarTextoBraille(document, textoBraille);
             }
 
@@ -57,43 +70,67 @@ public class GeneradorPDF {
         }
     }
 
-    private static void agregarBrailleEspejo(PdfDocument pdf, Document document, String textoBraille) throws IOException {
-        PdfPage page = pdf.getPage(pdf.getNumberOfPages());
+    /**
+     * Genera el contenido del PDF en modo espejo.
+     * @param pdf PdfDocument donde se añadirá el contenido.
+     * @param textoOriginal Texto en español que se desea incluir en el PDF.
+     * @param textoBraille Representación en Braille del texto original.
+     * @throws IOException Si ocurre un error al crear o escribir el contenido del PDF.
+     */
+    private static void generarContenidoEspejo(PdfDocument pdf, String textoOriginal, String textoBraille) throws IOException {
+        PdfPage page = pdf.addNewPage();
         PdfCanvas pdfCanvas = new PdfCanvas(page);
         float pageWidth = page.getPageSize().getWidth();
-        
-        // Calculamos la posición Y actual para que el Braille aparezca debajo del título
-        // Ajustamos el valor -50 para que no quede muy separado
-        float yPos = document.getRenderer().getCurrentArea().getBBox().getTop() - 45;
+        float pageHeight = page.getPageSize().getHeight();
 
-        // Guardamos el estado del canvas para no afectar a futuros elementos
+        // 1. Preparar Transformación de Espejo
         pdfCanvas.saveState();
-        
-        // Aplicamos la matriz de reflexión horizontal solo a este bloque
+        // Matriz de reflexión horizontal: escala x = -1, traslación x = pageWidth
         AffineTransform transform = new AffineTransform(-1.0, 0.0, 0.0, 1.0, pageWidth, 0.0);
         pdfCanvas.concatMatrix(transform);
-        
-        // Creamos un canvas temporal con la matriz invertida
+
+        // 2. Crear un Canvas para añadir elementos de alto nivel (Paragraphs)
         Canvas canvas = new Canvas(pdfCanvas, page.getPageSize());
+        
+        // --- DIBUJAR ESPAÑOL (ESPEJO) ---
+        PdfFont fontBold = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.HELVETICA_BOLD);
+        Paragraph pOriginal = new Paragraph(textoOriginal)
+                .setFont(fontBold)
+                .setFontSize(48)
+                .setTextAlignment(TextAlignment.CENTER);
+        
+        // Posicionamos el español en la parte superior
+        canvas.showTextAligned(pOriginal, pageWidth / 2, pageHeight - 100, TextAlignment.CENTER);
+
+        // --- DIBUJAR BRAILLE (ESPEJO) ---
         PdfFont fontBraille = cargarFuenteBraille();
+        Paragraph pBraille = crearParrafoBraille(textoBraille, fontBraille)
+                .setTextAlignment(TextAlignment.CENTER);
         
-        // El Braille ahora saldrá con los puntos invertidos y en orden de derecha a izquierda (para regleta)
-        Paragraph p = crearParrafoBraille(textoBraille, fontBraille)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFixedPosition(0, yPos, pageWidth);
-        
-        canvas.add(p);
-        
-        // Restauramos el canvas a su estado normal
+        // Posicionamos el braille debajo del texto original
+        canvas.showTextAligned(pBraille, pageWidth / 2, pageHeight - 200, TextAlignment.CENTER);
+
+        // 3. Limpiar y restaurar
         pdfCanvas.restoreState();
         canvas.close();
     }
 
+    /**
+     * Agrega el texto en Braille al documento.
+     * @param document Documento donde se añadirá el texto en Braille.
+     * @param textoBraille Representación en Braille del texto original.
+     * @throws IOException Si ocurre un error al cargar la fuente Braille.
+     */
     private static void agregarTextoBraille(Document document, String textoBraille) throws IOException {
         PdfFont fontBraille = cargarFuenteBraille();
         document.add(crearParrafoBraille(textoBraille, fontBraille).setTextAlignment(TextAlignment.CENTER));
     }
 
+    /**
+     * Carga una fuente que soporte caracteres Braille.
+     * @return PdfFont que soporta Braille.
+     * @throws IOException Si ocurre un error al cargar la fuente.
+     */
     private static PdfFont cargarFuenteBraille() throws IOException {
         String[] fuentes = {
             "C:/Windows/Fonts/seguisym.ttf",
@@ -109,7 +146,13 @@ public class GeneradorPDF {
         }
         return PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.HELVETICA);
     }
-
+    
+    /**
+     * Crea un párrafo formateado para texto en Braille.
+     * @param texto Texto en Braille.
+     * @param font Fuente que soporta Braille.
+     * @return Paragraph formateado para Braille.
+     */
     private static Paragraph crearParrafoBraille(String texto, PdfFont font) {
         return new Paragraph(texto)
                 .setFont(font)

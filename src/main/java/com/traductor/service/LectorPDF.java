@@ -38,7 +38,7 @@ public class LectorPDF {
                 }
             }
         }
-        // Normaliza los espacios: si iText capturó múltiples espacios, los dejamos como uno solo.
+        // Normaliza los espacios: si iText capturó múltiples espacios, se los deja como uno solo.
         return textoExtraido.toString();
     }
 }

@@ -59,8 +59,10 @@ public class TraductorBraille implements ITraductor {
 
     /**
      * Traduce texto de Braille Unicode a Español.
-     * @param textoBraille El texto en Braille Unicode a traducir.
-     * @return El texto traducido en Español.
+     * Solo traduce los caracteres que son Braille Unicode (rango U+2800 a U+28FF).
+     * El texto normal en español se OMITE completamente del resultado.
+     * @param textoBraille El texto que puede contener Braille Unicode y texto normal.
+     * @return Solo el texto traducido del Braille, sin incluir texto en español.
      */
     @Override
     public String traducirBrailleAEspanol(String textoBraille) {
@@ -69,25 +71,59 @@ public class TraductorBraille implements ITraductor {
         StringBuilder resultado = new StringBuilder();
         boolean siguienteMayuscula = false;
         boolean modoNumero = false;
+        boolean enSecuenciaBraille = false;
         
         for (int i = 0; i < textoBraille.length(); i++) {
             char caracterActual = textoBraille.charAt(i);
             
+            // Mantener saltos de línea solo si vienen de Braille
             if (caracterActual == '\n' || caracterActual == '\r') {
-                resultado.append(caracterActual);
+                // Solo agregar saltos de línea si ya hay contenido traducido
+                if (resultado.length() > 0) {
+                    resultado.append(caracterActual);
+                }
                 modoNumero = false;
                 siguienteMayuscula = false;
+                enSecuenciaBraille = false;
                 continue;
             }
             
-            if (caracterActual == ' ' || caracterActual == '\u2800' || caracterActual == '\t') {
+            // Si es espacio Braille Unicode - traducir a espacio normal
+            if (caracterActual == '\u2800') {
                 resultado.append(' ');
                 modoNumero = false;
                 siguienteMayuscula = false;
+                enSecuenciaBraille = true;
                 continue;
             }
             
+            // Para espacios normales, verificar si estamos en una secuencia Braille
+            if (caracterActual == ' ' || caracterActual == '\t') {
+                // Verificar si hay más caracteres Braille adelante
+                boolean hayBrailleAdelante = false;
+                for (int j = i + 1; j < textoBraille.length(); j++) {
+                    char siguienteChar = textoBraille.charAt(j);
+                    if (siguienteChar != ' ' && siguienteChar != '\t') {
+                        hayBrailleAdelante = esBrailleUnicode(siguienteChar);
+                        break;
+                    }
+                }
+                
+                // Si estamos en secuencia Braille y hay más Braille adelante, mantener el espacio
+                if (enSecuenciaBraille && hayBrailleAdelante) {
+                    resultado.append(' ');
+                    modoNumero = false;
+                    siguienteMayuscula = false;
+                } else {
+                    // Si no hay Braille adelante, terminó la secuencia
+                    enSecuenciaBraille = false;
+                }
+                continue;
+            }
+            
+            // Solo procesar si es un carácter Braille Unicode
             if (esBrailleUnicode(caracterActual)) {
+                enSecuenciaBraille = true;
                 String patron = convertirUnicodeBrailleAPatron(caracterActual);
                 if (patron.equals("0") || patron.isEmpty()) {
                     resultado.append(' ');
@@ -133,11 +169,11 @@ public class TraductorBraille implements ITraductor {
                             modoNumero = false;
                         }
                     }
-                } else {
-                    resultado.append(caracterActual);
                 }
+                // Si no se encuentra traducción, simplemente se omite (no se añade nada)
             } else {
-                resultado.append(caracterActual);
+                // NO es Braille Unicode - termina la secuencia Braille
+                enSecuenciaBraille = false;
             }
         }
         return resultado.toString();
