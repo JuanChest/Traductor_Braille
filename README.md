@@ -119,12 +119,12 @@ El sistema permite exportar las traducciones a archivos PDF de alta calidad con 
 
 ---
 
-**Requisitos del sistema**
+## ⚙️ **10. Requisitos del sistema**
 
 - JDK25 con javaFX (ZuluFX)
 - Sistema operativo Windows
 
-## 1. Descarga de Archivos Necesarios (Assets)
+## 📦 **11. Descarga de Archivos Necesarios (Assets)**
 
 Los archivos de la aplicación y el entorno de ejecución se encuentran en la sección **Releases (Versiones)** de este repositorio.
 
@@ -136,7 +136,7 @@ Los archivos de la aplicación y el entorno de ejecución se encuentran en la se
 
 ---
 
-## 2. Instalación del Entorno de Ejecución (ZuluFX)
+## 🔧 **12. Instalación del Entorno de Ejecución (ZuluFX)**
 
 1. Abrir el archivo **msi** de Zulu.
 2. Seguir el procesos de instalación.
@@ -144,7 +144,7 @@ Los archivos de la aplicación y el entorno de ejecución se encuentran en la se
 
 ---
 
-## 3. Ejecución de la Aplicación
+## 🚀 **13. Ejecución de la Aplicación**
 
 1. Click derecho sobre el archivo `Traductor-braille-1.2.0.jar` y seleccionar "Abrir con" -> "Zulu Platform x64 Architecture"
 2. ¡La aplicación **Traductor Braille** debería iniciarse!
