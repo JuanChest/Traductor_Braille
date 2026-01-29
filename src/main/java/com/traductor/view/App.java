@@ -26,10 +26,12 @@ public class App extends Application {
         controller.setTraductor(traductor);
 
         // Configurar la escena y el escenario
-        Scene scene = new Scene(root, 650, 580);
+        Scene scene = new Scene(root, 800, 750);
         primaryStage.setTitle("Traductor Braille");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
+        primaryStage.setMinWidth(700);
+        primaryStage.setMinHeight(650);
         primaryStage.show();
     }
 

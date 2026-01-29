@@ -2,7 +2,7 @@ package com.traductor.controller;
 
 import com.traductor.model.ITraductor;
 import com.traductor.service.GeneradorPDF;
-import com.traductor.service.LectorPDF;
+
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -33,12 +33,31 @@ public class TraductorController {
     @FXML
     private CheckBox checkModoEspejo;
 
+    // Campos para la celda Braille interactiva
     @FXML
-    private TextArea textoTraduccionPDF;
+    private CheckBox chkPunto1;
+    @FXML
+    private CheckBox chkPunto2;
+    @FXML
+    private CheckBox chkPunto3;
+    @FXML
+    private CheckBox chkPunto4;
+    @FXML
+    private CheckBox chkPunto5;
+    @FXML
+    private CheckBox chkPunto6;
 
     @FXML
-    private Label lblArchivoSeleccionado;
+    private TextArea textoBrailleIngresado;
 
+    @FXML
+    private TextArea textoResultadoEspanol;
+
+    @FXML
+    private javafx.scene.layout.VBox containerPestanaBraille;
+
+    // Estado interno para los puntos de la celda Braille
+    private boolean[] puntosActivos = new boolean[6];
     private ITraductor traductor;
 
     /**
@@ -61,7 +80,7 @@ public class TraductorController {
      */
     @FXML
     private void initialize() {
-        // Inicialización adicional si es necesaria
+        configurarEventosTeclado();
     }
 
     /**
@@ -128,7 +147,7 @@ public class TraductorController {
             try {
                 // Verificar si el modo espejo está activado
                 boolean modoEspejo = checkModoEspejo != null && checkModoEspejo.isSelected();
-                
+
                 // Generar el PDF con o sin modo espejo
                 GeneradorPDF.generarPDF(textoOriginal, textoBraille, archivo.getAbsolutePath(), modoEspejo);
 
@@ -190,45 +209,236 @@ public class TraductorController {
     }
 
     /**
-     * Permite seleccionar un archivo PDF con texto Braille para traducir a español.
-     * Este método es invocado cuando se hace clic en el botón "Seleccionar Archivo PDF".
+     * Configura los eventos de teclado para la pestaña de entrada Braille
+     * interactiva.
      */
-    @FXML
-    private void seleccionarArchivoPDF() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar PDF con texto Braille");
-        
-        // Filtro para archivos PDF
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Archivos PDF (*.pdf)", "*.pdf");
-        fileChooser.getExtensionFilters().add(extFilter);
-        
-        // Mostrar diálogo para abrir archivo
-        File archivoPDF = fileChooser.showOpenDialog(textoTraduccionPDF.getScene().getWindow());
-        
-        if (archivoPDF != null) {
-            try {
-                // Actualizar label con el nombre del archivo
-                lblArchivoSeleccionado.setText(archivoPDF.getName());
-                lblArchivoSeleccionado.setStyle("-fx-font-style: normal; -fx-text-fill: #2196F3; -fx-font-weight: bold;");
-                
-                // Leer el PDF y traducir de Braille a Español
-                String textoBraille = LectorPDF.leerPDF(archivoPDF.getAbsolutePath());
-                String textoEspanol = traductor.traducirBrailleAEspanol(textoBraille);
-                
-                // Mostrar la traducción
-                textoTraduccionPDF.setText(textoEspanol);
-                
-                // Mostrar notificación de éxito
-                mostrarNotificacionMinimalista("PDF leído correctamente", "success");
-                
-            } catch (Exception e) {
-                lblArchivoSeleccionado.setText("Error al leer el archivo");
-                lblArchivoSeleccionado.setStyle("-fx-font-style: italic; -fx-text-fill: #F44336;");
-                textoTraduccionPDF.setText("Error al procesar el archivo PDF: " + e.getMessage());
-                mostrarNotificacionMinimalista("Error al leer el PDF", "error");
-                e.printStackTrace();
+    private void configurarEventosTeclado() {
+        if (containerPestanaBraille != null) {
+            containerPestanaBraille.setOnKeyPressed(event -> {
+                switch (event.getCode()) {
+                    // Teclas numéricas alfanuméricos
+                    case DIGIT1:
+                        togglePunto(0);
+                        break;
+                    case DIGIT2:
+                        togglePunto(1);
+                        break;
+                    case DIGIT3:
+                        togglePunto(2);
+                        break;
+                    case DIGIT4:
+                        togglePunto(3);
+                        break;
+                    case DIGIT5:
+                        togglePunto(4);
+                        break;
+                    case DIGIT6:
+                        togglePunto(5);
+                        break;
+
+                    // Teclas numéricas del teclado numérico
+                    case NUMPAD1:
+                        togglePunto(0);
+                        break;
+                    case NUMPAD2:
+                        togglePunto(1);
+                        break;
+                    case NUMPAD3:
+                        togglePunto(2);
+                        break;
+                    case NUMPAD4:
+                        togglePunto(3);
+                        break;
+                    case NUMPAD5:
+                        togglePunto(4);
+                        break;
+                    case NUMPAD6:
+                        togglePunto(5);
+                        break;
+
+                    // Teclas de control
+                    case ENTER:
+                        confirmarSimbolo();
+                        break;
+                    case SPACE:
+                        insertarEspacio();
+                        break;
+                    case BACK_SPACE:
+                        borrarUltimoSimbolo();
+                        break;
+
+                    default:
+                        break;
+                }
+                event.consume();
+            });
+
+            // Solicitar foco cuando se hace clic en el container
+            containerPestanaBraille.setOnMouseClicked(e -> containerPestanaBraille.requestFocus());
+        }
+    }
+
+    /**
+     * Activa o desactiva un punto en la celda Braille.
+     * 
+     * @param indice Índice del punto (0-5 correspondiente a puntos 1-6)
+     */
+    private void togglePunto(int indice) {
+        if (indice < 0 || indice >= 6)
+            return;
+
+        puntosActivos[indice] = !puntosActivos[indice];
+
+        // Actualizar el checkbox visual correspondiente
+        CheckBox[] checkboxes = { chkPunto1, chkPunto2, chkPunto3, chkPunto4, chkPunto5, chkPunto6 };
+        if (checkboxes[indice] != null) {
+            checkboxes[indice].setSelected(puntosActivos[indice]);
+        }
+    }
+
+    /**
+     * Confirma el símbolo Braille actual y lo añade al TextArea de entrada.
+     * Este método es llamado cuando se presiona ENTER.
+     */
+    private void confirmarSimbolo() {
+        String patron = obtenerPatronActual();
+        char simboloBraille = convertirPatronABrailleUnicode(patron);
+
+        if (textoBrailleIngresado != null) {
+            textoBrailleIngresado.appendText(String.valueOf(simboloBraille));
+        }
+
+        limpiarCelda();
+    }
+
+    /**
+     * Inserta un espacio Braille (U+2800) en el TextArea de entrada.
+     * Este método es llamado cuando se presiona ESPACIO.
+     */
+    private void insertarEspacio() {
+        if (textoBrailleIngresado != null) {
+            textoBrailleIngresado.appendText("\u2800"); // Espacio Braille Unicode
+        }
+        limpiarCelda();
+    }
+
+    /**
+     * Borra el último símbolo del TextArea de entrada Braille.
+     * Este método es llamado cuando se presiona BACKSPACE.
+     */
+    private void borrarUltimoSimbolo() {
+        if (textoBrailleIngresado != null) {
+            String texto = textoBrailleIngresado.getText();
+            if (!texto.isEmpty()) {
+                textoBrailleIngresado.setText(texto.substring(0, texto.length() - 1));
             }
         }
+    }
+
+    /**
+     * Obtiene el patrón de puntos actualmente activados.
+     * 
+     * @return String con los números de los puntos activos (ej: "145")
+     */
+    private String obtenerPatronActual() {
+        StringBuilder patron = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            if (puntosActivos[i]) {
+                patron.append(i + 1); // Los puntos se numeran 1-6
+            }
+        }
+        return patron.length() > 0 ? patron.toString() : "0";
+    }
+
+    /**
+     * Convierte un patrón de puntos a un carácter Braille Unicode.
+     * 
+     * @param patron Patrón de puntos (ej: "145")
+     * @return Carácter Braille Unicode correspondiente
+     */
+    private char convertirPatronABrailleUnicode(String patron) {
+        int valor = 0x2800; // Valor base de Braille Unicode
+
+        if (patron.equals("0")) {
+            return (char) valor; // Espacio Braille vacío
+        }
+
+        for (char c : patron.toCharArray()) {
+            int punto = c - '0'; // Convertir char a número
+            switch (punto) {
+                case 1:
+                    valor += 0x01;
+                    break;
+                case 2:
+                    valor += 0x02;
+                    break;
+                case 3:
+                    valor += 0x04;
+                    break;
+                case 4:
+                    valor += 0x08;
+                    break;
+                case 5:
+                    valor += 0x10;
+                    break;
+                case 6:
+                    valor += 0x20;
+                    break;
+            }
+        }
+
+        return (char) valor;
+    }
+
+    /**
+     * Limpia todos los puntos de la celda Braille.
+     */
+    private void limpiarCelda() {
+        for (int i = 0; i < 6; i++) {
+            puntosActivos[i] = false;
+        }
+
+        // Actualizar checkboxes visuales
+        CheckBox[] checkboxes = { chkPunto1, chkPunto2, chkPunto3, chkPunto4, chkPunto5, chkPunto6 };
+        for (CheckBox chk : checkboxes) {
+            if (chk != null) {
+                chk.setSelected(false);
+            }
+        }
+    }
+
+    /**
+     * Traduce los símbolos Braille ingresados a Español.
+     * Este método es invocado cuando se hace clic en el botón "Traducir a Español".
+     */
+    @FXML
+    private void traducirBrailleIngresado() {
+        if (textoBrailleIngresado == null || textoResultadoEspanol == null)
+            return;
+
+        String braille = textoBrailleIngresado.getText();
+        if (braille.isEmpty()) {
+            textoResultadoEspanol.setText("Ingresa símbolos Braille primero");
+            return;
+        }
+
+        String resultado = traductor.traducirBrailleAEspanol(braille);
+        textoResultadoEspanol.setText(resultado);
+    }
+
+    /**
+     * Limpia todos los campos de la entrada Braille interactiva.
+     * Este método es invocado cuando se hace clic en el botón "Limpiar".
+     */
+    @FXML
+    private void limpiarBrailleIngresado() {
+        if (textoBrailleIngresado != null) {
+            textoBrailleIngresado.clear();
+        }
+        if (textoResultadoEspanol != null) {
+            textoResultadoEspanol.clear();
+        }
+        limpiarCelda();
     }
 
     /**
