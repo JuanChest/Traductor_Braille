@@ -18,7 +18,7 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
     
-    <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sistema Traductor Braille v1.2" />
+    <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sistema Traductor Braille v1.3.0" />
     
     <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
         <!-- Tab 1: Español a Braille -->
@@ -83,7 +83,7 @@
                     
                     <!-- Instrucciones de teclado -->
                     <VBox prefHeight="169.0" prefWidth="463.0" spacing="8.0" style="-fx-background-color: #E3F2FD; -fx-padding: 15px; -fx-background-radius: 5px;" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 12px;" text="⌨️  Teclas 1-6: Activar/Desactivar puntos" />
+                        <Label style="-fx-font-size: 12px;" text="🖱️  Click en puntos o Teclas 1-6: Activar/Desactivar" />
                         <Label style="-fx-font-size: 12px;" text="↵  ENTER: Confirmar y añadir símbolo" />
                         <Label style="-fx-font-size: 12px;" text="␣  ESPACIO: Insertar espacio" />
                         <Label style="-fx-font-size: 12px;" text="⌫  BACKSPACE: Borrar último símbolo" />

@@ -81,6 +81,7 @@ public class TraductorController {
     @FXML
     private void initialize() {
         configurarEventosTeclado();
+        configurarEventosCheckboxes();
     }
 
     /**
@@ -275,6 +276,24 @@ public class TraductorController {
 
             // Solicitar foco cuando se hace clic en el container
             containerPestanaBraille.setOnMouseClicked(e -> containerPestanaBraille.requestFocus());
+        }
+    }
+
+    /**
+     * Configura los eventos de clic en los checkboxes de la celda Braille.
+     * Permite que el usuario active/desactive puntos con el mouse.
+     */
+    private void configurarEventosCheckboxes() {
+        CheckBox[] checkboxes = { chkPunto1, chkPunto2, chkPunto3, chkPunto4, chkPunto5, chkPunto6 };
+
+        for (int i = 0; i < checkboxes.length; i++) {
+            final int indice = i;
+            if (checkboxes[i] != null) {
+                checkboxes[i].setOnAction(event -> {
+                    // Sincronizar el estado del checkbox con el array interno
+                    puntosActivos[indice] = checkboxes[indice].isSelected();
+                });
+            }
         }
     }
 
