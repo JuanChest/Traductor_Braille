@@ -1,6 +1,6 @@
 # TRADUCTOR BRAILLE
 
-## Versión 1.2.0
+## Versión 1.3.0
 
 ### Escuela Politécnica Nacional
 
@@ -37,9 +37,34 @@ Este sistema nace con el propósito de:
 
 ### 🔄 **1. Traducción Bidireccional Español ↔ Braille Unicode**
 
-- **Español a Braille**: Convierte texto en español a su representación en Braille Unicode (caracteres U+2800 a U+28FF).
-- **Braille a Español**: Traduce texto en Braille Unicode de vuelta al español, permitiendo verificar traducciones o leer documentos en Braille.
-- **Interfaz intuitiva**: Dos áreas de texto separadas para entrada y salida, con traducción instantánea mediante un botón.
+#### **Español a Braille**
+- Convierte texto en español a su representación en Braille Unicode (caracteres U+2800 a U+28FF).
+- Interfaz de texto tradicional con áreas de entrada y salida.
+- Traducción instantánea mediante botón "Traducir".
+
+#### **Braille a Español (v1.3.0)**
+El sistema ahora ofrece **dos métodos** de ingreso de caracteres Braille:
+
+**🖱️ Método 1: Entrada Interactiva con Celda Braille (Novedad v1.3.0)**
+- **Celda Braille Visual**: Interfaz gráfica con 6 checkboxes que representan los 6 puntos del sistema Braille.
+- **Ingreso Dual**:
+  - **Con Mouse**: Haz clic directamente en los checkboxes para activar/desactivar puntos.
+  - **Con Teclado**: Usa las teclas numéricas 1-6 (teclado principal o numérico) para activar/desactivar puntos.
+- **Controles de Navegación**:
+  - `ENTER`: Confirma el patrón de puntos actual y lo añade como símbolo Braille al área de texto.
+  - `ESPACIO`: Inserta un espacio Braille (⠀) en el texto.
+  - `BACKSPACE`: Borra el último símbolo ingresado.
+- **Visualización en Tiempo Real**: Los checkboxes se actualizan visualmente al presionar teclas o hacer clic.
+- **Acumulación de Símbolos**: Los símbolos confirmados se acumulan en un área de texto dedicada.
+- **Traducción por Lotes**: Botón "Traducir a Español" procesa todos los símbolos acumulados y muestra el resultado.
+
+**⌨️ Método 2: Entrada Directa de Unicode (Tradicional)**
+- Pega o escribe directamente caracteres Braille Unicode en el área de texto.
+- Compatible con copiar/pegar desde documentos o PDFs que contengan Braille Unicode.
+
+**🔄 Funciones Adicionales**:
+- **Botón "Limpiar"**: Reinicia tanto el área de símbolos Braille como el resultado en español.
+- **Validación**: El sistema verifica que se hayan ingresado símbolos antes de traducir.
 
 ### 📝 **2. Soporte Completo del Alfabeto Español**
 
@@ -85,58 +110,59 @@ El sistema permite exportar las traducciones a archivos PDF de alta calidad con 
   - Espaciado entre líneas: 15mm
   - (Cumple con estándares de legibilidad táctil)
 
-### 📖 **6. Lectura de Archivos PDF con Braille**
+### 🎨 **6. Interfaz Gráfica Moderna (JavaFX)**
 
-- **Importación de PDF**: Permite seleccionar y leer archivos PDF que contengan texto en Braille Unicode.
-- **Extracción inteligente**: Utiliza algoritmos de detección espacial para identificar correctamente secuencias de caracteres Braille.
-- **Conversión automática**: El texto Braille extraído se traduce automáticamente a español.
-- **Manejo de múltiples páginas**: Procesa documentos PDF de varias páginas conservando la estructura del texto.
-
-### 🎨 **7. Interfaz Gráfica Moderna (JavaFX)**
-
-- **Diseño intuitivo**: Interfaz sencilla y fácil de usar para cualquier usuario.
+- **Diseño por pestañas**: Dos pestañas claramente diferenciadas:
+  - **Pestaña 1**: Español → Braille (entrada de texto tradicional)
+  - **Pestaña 2**: Braille → Español (celda Braille interactiva)
+- **Celda Braille Visual**: 6 checkboxes grandes que simulan los puntos del sistema Braille en disposición 2×3.
+- **Diseño intuitivo**: Interfaz sencilla y fácil de usar para cualquier usuario, con o sin conocimientos previos de Braille.
 - **Notificaciones visuales**: Sistema de notificaciones minimalistas que confirman acciones exitosas o alertan sobre errores.
-- **Función de limpieza**: Botón para limpiar rápidamente ambos campos de texto.
-- **Acceso directo a funciones**: Botones claramente etiquetados para cada funcionalidad (Traducir, Limpiar, Descargar PDF, Cargar PDF).
+- **Instrucciones integradas**: Panel de ayuda visible en la pestaña de Braille con los controles de teclado disponibles.
+- **Ventana redimensionable**: Tamaño inicial optimizado (800×750px) con posibilidad de ajuste según preferencias.
+- **Acceso directo a funciones**: Botones claramente etiquetados para cada funcionalidad.
 
-### 🔧 **8. Arquitectura Modular y Mantenible**
+### 🔧 **7. Arquitectura Modular y Mantenible**
 
 - **Patrón MVC**: Separación clara entre Modelo, Vista y Controlador.
 - **Componentes especializados**:
   - `TraductorBraille`: Lógica de traducción bidireccional
-  - `DiccionarioBraille`: Almacenamiento de correspondencias carácter-patrón
-  - `SimboloBraille`: Representación de símbolos Braille con sus 6 puntos
-  - `GeneradorPDF`: Creación de documentos PDF en múltiples formatos
-  - `LectorPDF`: Extracción de texto desde archivos PDF
+  - `DiccionarioBraille`: Almacenamiento de correspondencias carácter-patrón con búsqueda bidireccional
+  - `SimboloBraille`: Constantes y utilidades para símbolos Braille especiales
+  - `GeneradorPDF`: Creación de documentos PDF en modo normal y espejo
+  - `TraductorController`: Gestión de eventos de UI, celda Braille interactiva y coordinación de traducción
 - **Interfaz `ITraductor`**: Permite extensibilidad para otros sistemas de traducción
+- **Manejo de eventos**: Sistema robusto de captura de eventos de teclado y mouse para la celda Braille
 
-### ⚙️ **9. Funcionalidades Avanzadas**
+### ⚙️ **8. Funcionalidades Avanzadas**
 
 - **Detección automática de contexto**: El sistema reconoce automáticamente si un texto contiene números, mayúsculas o caracteres especiales y aplica las reglas correctas.
 - **Normalización de espacios**: Manejo inteligente de espacios múltiples y saltos de línea.
-- **Filtrado de contenido mixto**: Al traducir de Braille a español, el sistema ignora texto normal y solo procesa caracteres Braille Unicode.
+- **Conversión patrón-Unicode bidireccional**: Sistema inteligente que convierte patrones de puntos (ej: "135") a caracteres Unicode Braille y viceversa.
+- **Sincronización visual-lógica**: La celda Braille mantiene sincronizado el estado visual (checkboxes) con el estado interno (array de booleanos).
 - **Generación de nombres automáticos**: Los PDFs generados incluyen marca de tiempo en el nombre del archivo para evitar sobrescrituras.
+- **Entrada dual mouse/teclado**: Los usuarios pueden elegir el método de ingreso más cómodo para ellos.
 
 ---
 
-## ⚙️ **10. Requisitos del sistema**
+## ⚙️ **9. Requisitos del sistema**
 
 - JDK25 con javaFX (ZuluFX)
 - Sistema operativo Windows
 
-## 📦 **11. Descarga de Archivos Necesarios (Assets)**
+## 📦 **10. Descarga de Archivos Necesarios (Assets)**
 
 Los archivos de la aplicación y el entorno de ejecución se encuentran en la sección **Releases (Versiones)** de este repositorio.
 
 1.  Ve a la pestaña **Releases** o a la sección de **Tags**.
-2.  Busca la versión **`v1.2.0`** (o la más reciente).
+2.  Busca la versión **`v1.3.0`** (o la más reciente).
 3.  Bajo la sección **Assets (Archivos Adjuntos)**, descarga los siguientes dos archivos:
-    - `Traductor-braille-1.2.0.jar` (El programa principal).
+    - `Traductor-braille-1.3.0.jar` (El programa principal).
     - `zulu25.30.17-ca-fx-jdk25.0.1-win_x64.msi` (El entorno de ejecución de Java/JavaFX necesario).
 
 ---
 
-## 🔧 **12. Instalación del Entorno de Ejecución (ZuluFX)**
+## 🔧 **11. Instalación del Entorno de Ejecución (ZuluFX)**
 
 1. Abrir el archivo **msi** de Zulu.
 2. Seguir el procesos de instalación.
@@ -144,7 +170,26 @@ Los archivos de la aplicación y el entorno de ejecución se encuentran en la se
 
 ---
 
-## 🚀 **13. Ejecución de la Aplicación**
+## 🚀 **12. Ejecución de la Aplicación**
 
-1. Click derecho sobre el archivo `Traductor-braille-1.2.0.jar` y seleccionar "Abrir con" -> "Zulu Platform x64 Architecture"
+1. Click derecho sobre el archivo `Traductor-braille-1.3.0.jar` y seleccionar "Abrir con" -> "Zulu Platform x64 Architecture"
 2. ¡La aplicación **Traductor Braille** debería iniciarse!
+
+---
+
+## 🆕 **Novedades en v1.3.0**
+
+### ✨ **Entrada Interactiva de Braille**
+- **Celda Braille Visual**: Nueva interfaz gráfica con 6 checkboxes que representan los puntos del sistema Braille.
+- **Entrada Dual**: Soporte completo para mouse (clic en checkboxes) y teclado (teclas 1-6).
+- **Controles de Edición**: ENTER para confirmar símbolos, ESPACIO para insertar espacios, BACKSPACE para borrar.
+- **Mejor Usabilidad**: Los usuarios ahora pueden construir caracteres Braille punto por punto sin necesidad de conocer los códigos Unicode.
+
+### 🔄 **Mejoras de Interfaz**
+- **Layout Horizontal**: Celda Braille e instrucciones lado a lado para mejor aprovechamiento del espacio.
+- **Ventana Redimensionable**: Tamaño inicial de 800×750px con posibilidad de ajuste.
+- **Instrucciones Integradas**: Panel de ayuda siempre visible en la pestaña de Braille.
+
+### 🗑️ **Funcionalidades Removidas**
+- **Lectura de PDF con Braille**: Se eliminó la funcionalidad de importar PDFs con texto Braille (reemplazada por entrada interactiva).
+- **Dependencias Reducidas**: Eliminación de la clase `LectorPDF` y simplificación del código.
