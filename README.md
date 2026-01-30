@@ -177,19 +177,3 @@ Los archivos de la aplicación y el entorno de ejecución se encuentran en la se
 
 ---
 
-## 🆕 **Novedades en v1.3.0**
-
-### ✨ **Entrada Interactiva de Braille**
-- **Celda Braille Visual**: Nueva interfaz gráfica con 6 checkboxes que representan los puntos del sistema Braille.
-- **Entrada Dual**: Soporte completo para mouse (clic en checkboxes) y teclado (teclas 1-6).
-- **Controles de Edición**: ENTER para confirmar símbolos, ESPACIO para insertar espacios, BACKSPACE para borrar.
-- **Mejor Usabilidad**: Los usuarios ahora pueden construir caracteres Braille punto por punto sin necesidad de conocer los códigos Unicode.
-
-### 🔄 **Mejoras de Interfaz**
-- **Layout Horizontal**: Celda Braille e instrucciones lado a lado para mejor aprovechamiento del espacio.
-- **Ventana Redimensionable**: Tamaño inicial de 800×750px con posibilidad de ajuste.
-- **Instrucciones Integradas**: Panel de ayuda siempre visible en la pestaña de Braille.
-
-### 🗑️ **Funcionalidades Removidas**
-- **Lectura de PDF con Braille**: Se eliminó la funcionalidad de importar PDFs con texto Braille (reemplazada por entrada interactiva).
-- **Dependencias Reducidas**: Eliminación de la clase `LectorPDF` y simplificación del código.
